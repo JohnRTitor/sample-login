@@ -20,6 +20,8 @@
   # https://devenv.sh/services/
   services.postgres.enable = true;
   services.postgres.package = pkgs.postgresql_18;
+  services.postgres.listen_addresses = "127.0.0.1";
+  services.postgres.port = 5432;
   
   # https://devenv.sh/scripts/
   scripts.hello.exec = ''
