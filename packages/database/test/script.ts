@@ -1,4 +1,10 @@
 /// Run this script using `pnpm tsx test/script.ts` from `packages/database` dir
+import path from "node:path";
+import { config } from "dotenv";
+
+// Load .env from the monorepo root before importing prisma
+config({ path: path.resolve(import.meta.dirname, "../../../.env") });
+
 import { prisma } from "../lib/prisma";
 
 async function main() {

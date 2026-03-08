@@ -1,6 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalPassThroughEnv": [
+    "PRISMA_SCHEMA_ENGINE_BINARY",
+    "PRISMA_QUERY_ENGINE_BINARY",
+    "PRISMA_QUERY_ENGINE_LIBRARY"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",

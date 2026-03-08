@@ -3,7 +3,11 @@
 {
   # https://devenv.sh/basics/
   env.GREET = "devenv";
-  env.PRISMA_CLI_BINARY_TARGETS = "linux-musl";
+    
+  # Point Prisma CLI to nix-provided engine binaries so it doesn't try to download
+  env.PRISMA_SCHEMA_ENGINE_BINARY = "${pkgs.prisma-engines_7}/bin/schema-engine";
+  env.PRISMA_QUERY_ENGINE_BINARY = "${pkgs.prisma-engines_7}/bin/query-engine";
+  env.PRISMA_QUERY_ENGINE_LIBRARY = "${pkgs.prisma-engines_7}/lib/libquery_engine.node";
 
   # https://devenv.sh/packages/
   packages = [ pkgs.git pkgs.prisma-engines_7 ];
