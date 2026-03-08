@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Sans } from "next/font/google";
 
 import "@workspace/ui/globals.css";
@@ -10,6 +11,12 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
+
+export const metadata: Metadata = {
+  title: "User Authentication Demo",
+  description:
+    "A simple user authentication demo built with Next.js, Better Auth, and PostgreSQL (with Prisma).",
+};
 
 export default function RootLayout({
   children,
