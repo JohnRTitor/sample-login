@@ -5,7 +5,6 @@
     "paths": {
       "@/*": ["./*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
-      "@workspace/database/*": ["../../packages/database/generated/prisma/*"],
     },
     "plugins": [
       {
