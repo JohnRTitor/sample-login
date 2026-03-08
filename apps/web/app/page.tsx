@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Button, buttonVariants } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 
-export default function Page() {
+export default function HomePage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
@@ -35,21 +35,13 @@ export default function Page() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <Link
-              href="/login"
-              className={buttonVariants({ className: "w-full" })}
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className={buttonVariants({
-                variant: "outline",
-                className: "w-full",
-              })}
-            >
-              Create account
-            </Link>
+            <Button className="w-full">
+              <Link href="/login">Sign in</Link>
+            </Button>
+
+            <Button variant="outline" className="w-full truncate">
+              <Link href="/register">Create account</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -61,7 +53,13 @@ export default function Page() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Hello, {session.user.name}</CardTitle>
-          <CardDescription>{session.user.email}</CardDescription>
+          <CardDescription>
+            Welcome! You have now been logged in.
+            <br />
+            Your email: {session.user.email} <br />
+            Account created at: {session.user.createdAt.toDateString()} <br />
+            Last details updated at: {session.user.updatedAt.toDateString()}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Button
