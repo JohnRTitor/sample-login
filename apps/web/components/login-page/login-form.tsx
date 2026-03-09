@@ -5,67 +5,113 @@ import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { Spinner } from "@workspace/ui/components/spinner";
+import { useForm } from "@tanstack/react-form";
+import { loginSchema } from "@/lib/schema/auth";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const form = useForm({
+    formId: "login-form",
 
-    const { error } = await signIn.email({
-      email,
-      password,
-    });
+    defaultValues: {
+      email: "",
+      password: "",
+    },
 
-    if (error) {
-      setError(error.message ?? "Invalid email or password.");
-      setLoading(false);
-      return;
-    }
+    validators: {
+      onSubmit: loginSchema,
+    },
 
-    router.push("/dashboard");
-  }
+    onSubmit: async ({ value }) => {
+      const { email, password } = value;
+
+      const { data, error } = await signIn.email({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message ?? "Something went wrong. Please try again.");
+        return;
+      }
+
+      router.push("/dashboard");
+    },
+  });
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && (
-        <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
-        </div>
-      )}
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={loading}
-        />
-      </div>
-      <Button type="submit" disabled={loading} className="mt-1 w-full">
-        {loading ? "Signing in…" : "Sign in"}
+    <form
+      id={form.formId}
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
+      <FieldGroup>
+        <form.Field name="email">
+          {(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="email"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                  placeholder="you@example.com"
+                />
+
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        </form.Field>
+
+        <form.Field name="password">
+          {(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="password"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                  placeholder="••••••••"
+                />
+
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        </form.Field>
+      </FieldGroup>
+
+      <Button type="submit" className="mt-4 w-full">
+        {form.state.isSubmitting ? (
+          <>
+            <Spinner /> Signing in...
+          </>
+        ) : (
+          "Sign in"
+        )}
       </Button>
     </form>
   );
