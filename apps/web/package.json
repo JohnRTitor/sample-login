@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-form": "^1.28.4",
+    "@tanstack/react-form-nextjs": "^1.28.4",
     "@workspace/database": "workspace:*",
     "@workspace/ui": "workspace:*",
     "better-auth": "^1.5.6",
@@ -19,7 +21,8 @@
     "next": "16.2.1",
     "next-themes": "^0.4.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
