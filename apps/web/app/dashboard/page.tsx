@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -24,28 +23,11 @@ export default function DashboardPage() {
     );
   }
 
+  // Middleware guarantees a valid session before this page renders.
+  // This is a defensive fallback that should rarely be hit.
   if (!session) {
-    return (
-      <div className="flex min-h-svh items-center justify-center p-6">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle className="text-xl">Welcome</CardTitle>
-            <CardDescription>
-              Sign in to your account or create a new one to get started.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <Button className="w-full">
-              <Link href="/login">Sign in</Link>
-            </Button>
-
-            <Button variant="outline" className="w-full truncate">
-              <Link href="/register">Create account</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    router.push("/login");
+    return null;
   }
 
   return (
