@@ -1,96 +1,84 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
+import { useAppForm } from "@/lib/form";
+import { registerSchema } from "@/lib/schema/auth";
+import { FieldGroup } from "@workspace/ui/components/field";
+import { toast } from "sonner";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const form = useAppForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
 
-    const { error } = await signUp.email({
-      name,
-      email,
-      password,
-    });
+    validators: {
+      onSubmit: registerSchema,
+    },
 
-    if (error) {
-      setError(error.message ?? "Something went wrong. Please try again.");
-      setLoading(false);
-      return;
-    }
+    onSubmit: async ({ value }) => {
+      const { name, email, password } = value;
 
-    router.push("/dashboard");
-  }
+      const { error } = await signUp.email({
+        name,
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message ?? "Something went wrong. Please try again.");
+        return;
+      }
+
+      router.push("/dashboard");
+    },
+  });
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && (
-        <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
-        </div>
-      )}
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Name</Label>
-        <Input
-          id="name"
-          type="text"
-          placeholder="John Doe"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={loading}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-        />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={loading}
-        />
-      </div>
-      <Button type="submit" disabled={loading} className="mt-1 w-full">
-        {loading ? "Creating account…" : "Sign up"}
-      </Button>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
+      <FieldGroup>
+        <form.AppField name="name">
+          {(field) => (
+            <field.FormInputField
+              label="Name"
+              placeholder="John Doe"
+              required
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="email">
+          {(field) => (
+            <field.FormInputField
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+            />
+          )}
+        </form.AppField>
+
+        <form.AppField name="password">
+          {(field) => <field.FormPasswordField label="Password" />}
+        </form.AppField>
+
+        <form.LoadingButton
+          type="submit"
+          loading={form.state.isSubmitting}
+          loadingText="Creating account..."
+        >
+          Sign Up
+        </form.LoadingButton>
+      </FieldGroup>
     </form>
   );
 }
