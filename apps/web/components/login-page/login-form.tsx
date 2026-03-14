@@ -32,7 +32,7 @@ export default function LoginForm() {
         toast.error(error.message ?? "Something went wrong. Please try again.");
         return;
       }
-
+      toast.success("Logged in successfully");
       router.push("/dashboard");
     },
   });

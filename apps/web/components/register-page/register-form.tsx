@@ -35,6 +35,7 @@ export default function RegisterForm() {
         return;
       }
 
+      toast.success("Registered successfully");
       router.push("/dashboard");
     },
   });
