@@ -48,8 +48,18 @@ async function isValidSession(
   // 1. Check the short-lived in-process cache first.
   const cached = sessionCache.get(sessionToken);
   if (cached && Date.now() < cached.expiresAt) {
+    console.log("[middleware] session cache hit", {
+      tokenSuffix: sessionToken.slice(-6),
+      valid: cached.valid,
+      expiresAt: cached.expiresAt,
+      now: Date.now(),
+    });
     return cached.valid;
   }
+  console.log("[middleware] session cache miss", {
+    tokenSuffix: sessionToken.slice(-6),
+    now: Date.now(),
+  });
 
   const baseUrl =
     process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? request.nextUrl.origin;
@@ -61,6 +71,13 @@ async function isValidSession(
   );
 
   try {
+    const tokenSuffix = sessionToken.slice(-6);
+    console.log("[middleware] validating session", {
+      tokenSuffix,
+      baseUrl,
+      pathname: request.nextUrl.pathname,
+    });
+
     const response = await fetch(`${baseUrl}/api/auth/get-session`, {
       method: "GET",
       headers: {
@@ -75,9 +92,19 @@ async function isValidSession(
     });
 
     const valid = response.ok;
+    console.log("[middleware] validation response", {
+      tokenSuffix,
+      status: response.status,
+      ok: response.ok,
+    });
 
     // 2. Populate the cache with the result.
     sessionCache.set(sessionToken, {
+      valid,
+      expiresAt: Date.now() + SESSION_CACHE_TTL_MS,
+    });
+    console.log("[middleware] caching validation result", {
+      tokenSuffix,
       valid,
       expiresAt: Date.now() + SESSION_CACHE_TTL_MS,
     });
@@ -116,6 +143,10 @@ function matchesRoutes(pathname: string, routes: readonly string[]): boolean {
 function redirectToLogin(request: NextRequest, pathname: string): NextResponse {
   const loginUrl = new URL(ROUTES.loginPage, request.url);
   loginUrl.searchParams.set(ROUTES.callbackParam, pathname);
+  console.log("[middleware] redirectToLogin", {
+    pathname,
+    loginUrl: loginUrl.toString(),
+  });
   return NextResponse.redirect(loginUrl);
 }
 
@@ -126,6 +157,10 @@ function redirectAfterLogin(request: NextRequest): NextResponse {
     callbackUrl && callbackUrl.startsWith("/")
       ? callbackUrl
       : ROUTES.afterLogin;
+  console.log("[middleware] redirectAfterLogin", {
+    callbackUrl,
+    destination,
+  });
   return NextResponse.redirect(new URL(destination, request.url));
 }
 
@@ -141,14 +176,33 @@ export default async function middleware(
   const isProtected = matchesRoutes(pathname, PROTECTED_ROUTES);
   const isGuestOnly = matchesRoutes(pathname, GUEST_ONLY_ROUTES);
 
+  console.log("[middleware] start", {
+    pathname,
+    isProtected,
+    isGuestOnly,
+    search: request.nextUrl.search,
+  });
+
   // Fast path: nothing to do for unguarded routes.
   if (!isProtected && !isGuestOnly) {
+    console.log("[middleware] unguarded route, allowing", { pathname });
     return NextResponse.next();
   }
 
   const sessionToken = getSessionToken(request);
+  console.log("[middleware] session token lookup", {
+    pathname,
+    hasToken: Boolean(sessionToken),
+    tokenSuffix: sessionToken ? sessionToken.slice(-6) : undefined,
+  });
   const authenticated =
     sessionToken != null && (await isValidSession(sessionToken, request));
+  console.log("[middleware] route decision", {
+    pathname,
+    isProtected,
+    isGuestOnly,
+    authenticated,
+  });
 
   // --- Protected routes: must be logged in ---
   if (isProtected && !authenticated) {
