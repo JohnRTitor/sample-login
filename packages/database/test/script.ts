@@ -5,7 +5,15 @@ import { config } from "dotenv";
 // Load .env from the monorepo root before importing prisma
 config({ path: path.resolve(import.meta.dirname, "../../../.env") });
 
-import { prisma } from "../lib/prisma";
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL is not set. Ensure it exists in the monorepo root .env"
+  );
+}
+
+const { prisma } = await import("../lib/prisma");
 
 async function main() {
   // Create a test user matching the Better Auth user model
